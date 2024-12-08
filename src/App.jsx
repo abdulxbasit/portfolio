@@ -17,7 +17,7 @@ const App = () => {
       <div className="container mx-auto px-6 py-10 max-w-7xl relative z-10">
         {/* Navigation & Theme Toggle */}
         <nav className="flex justify-between items-center mb-20">
-          <div className='text-3xl font-bold tracking-wider'>Abdul Basit</div>
+          <div className={isDarkMode ? 'text-3xl text-white font-bold tracking-wider': 'text-3xl font-bold tracking-wider'}>Abdul Basit</div>
           <button 
             onClick={toggleDarkMode} 
             className="backdrop-blur-sm bg-white/10 dark:bg-black/10 p-3 rounded-full shadow-lg hover:scale-110 transition-transform"
@@ -33,7 +33,7 @@ const App = () => {
             <div className="w-48 h-48 mx-auto mb-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl">
               <span className="text-6xl font-bold text-white">AB</span>
             </div>
-            <h1 className="text-5xl font-bold text-center mb-4">Abdul Basit</h1>
+            <h1 className={isDarkMode ? "text-5xl font-bold text-center mb-4 text-white":"text-5xl font-bold text-center mb-4"}>Abdul Basit</h1>
             <h2 className="text-2xl text-center text-gray-600 dark:text-gray-300 mb-8">Software Engineer</h2>
             
             {/* Social Links */}
@@ -58,8 +58,8 @@ const App = () => {
 
           {/* About Me Section */}
           <div className="backdrop-blur-sm bg-white/10 dark:bg-black/10 rounded-3xl p-10 shadow-2xl border border-white/20 dark:border-black/20">
-            <h3 className="text-3xl font-bold mb-6 border-b border-blue-500 pb-3">About Me</h3>
-            <p className="text-xl leading-relaxed mb-8">
+            <h3 className={`${isDarkMode? 'text-white': ''} text-3xl font-bold mb-6 border-b border-blue-500 pb-3`}>About Me</h3>
+            <p className={`${isDarkMode? 'text-white': ''} text-xl leading-relaxed mb-8`}>
               Passionate Software Engineer specializing in React and React Native. 
               I transform complex challenges into elegant, user-centric digital solutions 
               with a keen eye for design and performance.
@@ -72,7 +72,7 @@ const App = () => {
 
         {/* Skills Section */}
         <div className="mt-20 backdrop-blur-sm bg-white/10 dark:bg-black/10 rounded-3xl p-10 shadow-2xl border border-white/20 dark:border-black/20">
-          <h3 className="text-4xl font-bold text-center mb-10 border-b border-blue-500 pb-3">Skills</h3>
+          <h3 className={`${isDarkMode? 'text-white': ''} text-4xl font-bold text-center mb-10 border-b border-blue-500 pb-3`}>Skills</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {[
               'React', 'React Native', 'TypeScript', 
@@ -80,7 +80,7 @@ const App = () => {
             ].map((skill) => (
               <div 
                 key={skill} 
-                className="bg-white/20 dark:bg-black/20 py-6 text-center rounded-xl hover:scale-105 transition-transform text-lg"
+                className={`${isDarkMode? 'text-white': ''} bg-white/20 dark:bg-black/20 py-6 text-center rounded-xl hover:scale-105 transition-transform text-lg`}
               >
                 {skill}
               </div>
@@ -90,7 +90,7 @@ const App = () => {
 
         {/* Projects Section */}
         <div className="mt-20 backdrop-blur-sm bg-white/10 dark:bg-black/10 rounded-3xl p-10 shadow-2xl border border-white/20 dark:border-black/20">
-          <h3 className="text-4xl font-bold text-center mb-10 border-b border-blue-500 pb-3">Projects</h3>
+          <h3 className={`${isDarkMode? 'text-white': ''} text-4xl font-bold text-center mb-10 border-b border-blue-500 pb-3`}>Projects</h3>
           <div className="grid md:grid-cols-2 gap-8">
             {[
               { 
@@ -108,7 +108,7 @@ const App = () => {
                 key={project.name} 
                 className="bg-white/20 dark:bg-black/20 p-8 rounded-2xl hover:scale-105 transition-transform"
               >
-                <h4 className="text-3xl font-semibold mb-6">{project.name}</h4>
+                <h4 className="text-3xl dark:text-white font-semibold mb-6">{project.name}</h4>
                 <p className="mb-6 text-lg text-gray-700 dark:text-gray-300">{project.description}</p>
                 <div className="flex flex-wrap gap-3">
                   {project.technologies.map((tech) => (
@@ -126,7 +126,7 @@ const App = () => {
         </div>
 
         {/* Footer */}
-        <footer className="text-center mt-20 py-10 backdrop-blur-sm bg-white/10 dark:bg-black/10 rounded-t-3xl text-lg">
+        <footer className="text-center mt-20 py-10 backdrop-blur-sm bg-white/10 dark:bg-black/10 rounded-t-3xl text-lg dark:text-white">
           <p>© 2024 Abdul Basit. All Rights Reserved.</p>
         </footer>
       </div>
