@@ -13,7 +13,7 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/books" element={<BookList />} />
+        {/* <Route path="/books" element={<BookList />} /> */}
         <Route path="/tailwind-showcase" element={<TailwindClassShowcase />} />
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/random-stuff" element={<RandomStuff />} />
