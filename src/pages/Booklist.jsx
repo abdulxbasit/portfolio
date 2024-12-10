@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Book, Plus, Search, Save, X } from 'lucide-react';
 import { useBooks } from '../context/BookContext';
 
-function BookList() {
+function Booklist() {
   const { books, addBook } = useBooks();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddingBook, setIsAddingBook] = useState(false);
@@ -233,4 +233,4 @@ function BookList() {
   );
 }
 
-export default BookList;
+export default Booklist;
