@@ -2,7 +2,7 @@
 import { Routes, Route } from 'react-router';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
-import BookList from './pages/BookList';
+// import BookList from './pages/BookList';
 import TailwindClassShowcase from './pages/TailwindShowcase';
 import Portfolio from './pages/portfolio';
 import RandomStuff from './pages/RandomStuff';
