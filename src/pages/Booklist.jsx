@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Book, Plus, Search, Save, X } from 'lucide-react';
 import { useBooks } from '../context/BookContext';
 
@@ -152,7 +152,7 @@ function BookList() {
             </div>
             <div>
               <label htmlFor="suggester" className="block text-sm font-medium text-gray-700 mb-1">
-                Suggester's Name
+              Suggesters Name
               </label>
               <input
                 id="suggester"
