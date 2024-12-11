@@ -19,7 +19,7 @@ function Navbar() {
               to="/" 
               className="text-white font-bold text-2xl hover:text-blue-200 transition duration-300"
             >
-              MyApp
+              BiteSites
             </Link>
           </div>
 
@@ -35,14 +35,6 @@ function Navbar() {
                 </Link>
               </li>
 
-              <li>
-                <Link 
-                  to="/tailwind-showcase" 
-                  className="text-white hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition duration-300"
-                >
-                  Tailwind Showcase
-                </Link>
-              </li>
               <li>
                 <Link 
                   to="/portfolio" 
@@ -76,27 +68,7 @@ function Navbar() {
               >
                 Home
               </Link>
-              <Link 
-                to="/books" 
-                onClick={toggleMenu}
-                className="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
-              >
-                Book List
-              </Link>
-              <Link 
-                to="/add-book" 
-                onClick={toggleMenu}
-                className="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
-              >
-                Add Book
-              </Link>
-              <Link 
-                to="/tailwind-showcase" 
-                onClick={toggleMenu}
-                className="text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium"
-              >
-                Tailwind Showcase
-              </Link>
+              
               <Link 
                 to="/portfolio" 
                 onClick={toggleMenu}

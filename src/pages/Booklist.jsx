@@ -1,54 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Book, Plus, Search, Save, X } from 'lucide-react';
-
+import { collection, addDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { db, auth } from '../config/firebaseConfig';
+import { Timestamp } from "firebase/firestore";
 function Booklist() {
-  const books = [
-    { 
-      id: 1, 
-      title: 'Atomic Habits', 
-      author: 'James Clear', 
-      description: 'A guide on how to build good habits and break bad ones',
-      imageUrl: 'https://duabookpalace.com/cdn/shop/products/dua-book-palace-online-atomic-habits-38340136173800.jpg?v=1663838030'
-    },
-    { 
-      id: 2, 
-      title: 'Alchemist', 
-      author: 'Paulo Coelho', 
-      description: 'A story about a young shepherd who travels to Egypt after having a recurring dream about finding treasure there',
-      imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4T0aNvgYdBX8kfK_qYc046QFsSXhHE2NXWw&s'
-    },
-    { 
-      id: 3, 
-      title: 'Rich Dad Poor Dad',
-      author : 'Robert Kiyosaki',
-      description: "A book on personal finance",
-      imageUrl: "https://www.getstoryshots.com/wp-content/uploads/Rich-Dad-Poor-Dad-summary-PDF-Robert-Kiyosaki.png"
-    },
-    {
-        id: 4,
-        title: "Steal Like an Artist",
-        author: "Austin Kleon",
-        description: "A book on creativity",
-        imageUrl: "https://www.stanfords.co.uk/media/catalog/product/700x700/5/4/54a74734e21d485b04f6830b22abbcfb08c26a3e837ab3c2d72b255a6ab7dbe6.jpeg"
-    },
-    {
-        id: 5,
-        title: "Revive your Heart",
-        author: "Nouman Ali Khan",
-        description: "Inspiring modern Muslims to become sources of light in our world through the revival of their hearts",
-        imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWBZMyMiBvuXt5xudNcY1D0dzsbqknx81SRQ&s"
-    },
-    {
-        id: 6,
-        title: "Ikigai",
-        author: "Hector Garcia",
-        description: "A Japanese secret to a long and happy life",
-        imageUrl: "https://thestationers.pk/cdn/shop/files/ikigai-the-japanese-secret-to-a-long-and-happy-life-the-stationers-1.jpg?v=1708446568"
-    }
-  ];
-
+  const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddingBook, setIsAddingBook] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state for adding a new book
   const [newBook, setNewBook] = useState({
@@ -56,8 +15,32 @@ function Booklist() {
     author: '',
     description: '',
     genre: '',
-    suggester: '', // New field for suggester's name
+    suggester: '',
+    imageUrl: 'https://via.placeholder.com/300x450.png?text=Book+Cover',
   });
+
+  // Fetch books from Firestore with real-time updates
+  useEffect(() => {
+    const booksCollection = collection(db, 'books');
+    const booksQuery = query(booksCollection, orderBy('createdAt', 'desc'));
+
+    const unsubscribe = onSnapshot(
+      booksQuery,
+      (snapshot) => {
+        const booksList = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setBooks(booksList);
+      },
+      (error) => {
+        console.error('Error fetching books:', error);
+      }
+    );
+
+    // Cleanup listener on unmount
+    return () => unsubscribe();
+  }, []);
 
   // Filter books based on search term
   const filteredBooks = books.filter(
@@ -75,27 +58,56 @@ function Booklist() {
     }));
   };
 
-  // Handle adding a new book (just logs it for now)
-  const handleAddBook = (e) => {
-    e.preventDefault();
+  // Handle adding a new book
+  
 
-    const newBookWithId = {
-      ...newBook,
-      id: Date.now(),
-    };
+const handleAddBook = async (e) => {
+  e.preventDefault();
 
-    console.log('New book added:', newBookWithId);
+  if (!newBook.title.trim() || !newBook.author.trim()) {
+    alert("Please enter a title and author for the book.");
+    return;
+  }
 
-    // Reset form and close add book section
+  if (isSubmitting) return;
+  setIsSubmitting(true);
+
+  const suggesterName = auth.currentUser?.displayName || newBook.suggester || "Anonymous";
+
+  const bookToAdd = {
+    ...newBook,
+    title: newBook.title.trim(),
+    author: newBook.author.trim(),
+    description: newBook.description.trim() || "No description provided",
+    genre: newBook.genre || "Uncategorized",
+    suggester: suggesterName,
+    imageUrl: newBook.imageUrl || 'https://via.placeholder.com/300x450.png?text=Book+Cover',
+    createdAt: Timestamp.now(), // Use Firestore Timestamp
+  };
+
+  try {
+    const docRef = await addDoc(collection(db, "books"), bookToAdd);
+    const newBookWithId = { id: docRef.id, ...bookToAdd };
+
+    setBooks((prevBooks) => [newBookWithId, ...prevBooks]);
     setNewBook({
       title: '',
       author: '',
       description: '',
       genre: '',
       suggester: '',
+      imageUrl: 'https://via.placeholder.com/300x450.png?text=Book+Cover',
     });
     setIsAddingBook(false);
-  };
+    alert("Book added successfully!");
+  } catch (error) {
+    console.error("Error adding book: ", error);
+    alert("Failed to add book. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <div className="container mx-auto p-4 max-w-7xl">
@@ -104,23 +116,25 @@ function Booklist() {
           <Book className="mr-3 text-blue-600" size={36} />
           Book List
         </h2>
-        <p>Some of the books I have read and Suggest, Please Add Yours 😊📚</p>
-        <button
-          onClick={() => setIsAddingBook(!isAddingBook)}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
-        >
-          {isAddingBook ? (
-            <>
-              <X className="mr-2" size={20} />
-              Cancel
-            </>
-          ) : (
-            <>
-              <Plus className="mr-2" size={20} />
-              Suggest Book
-            </>
-          )}
-        </button>
+        <p>Some of the books I have read and suggest. Please add yours 😊📚</p>
+        {auth.currentUser && (
+          <button
+            onClick={() => setIsAddingBook(!isAddingBook)}
+            className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
+          >
+            {isAddingBook ? (
+              <>
+                <X className="mr-2" size={20} />
+                Cancel
+              </>
+            ) : (
+              <>
+                <Plus className="mr-2" size={20} />
+                Suggest Book
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Add Book Form */}
@@ -128,7 +142,7 @@ function Booklist() {
         <div className="bg-white shadow-md rounded-lg p-6 mb-6">
           <h3 className="text-2xl font-semibold mb-4 text-blue-600">Add a New Book</h3>
           <form onSubmit={handleAddBook} className="space-y-4">
-            <div>
+             <div>
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
                 Title
               </label>
@@ -188,8 +202,21 @@ function Booklist() {
                 placeholder="Enter book description"
                 value={newBook.description}
                 onChange={handleInputChange}
-                required
                 rows="4"
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                Image URL (optional)
+              </label>
+              <input
+                id="imageUrl"
+                name="imageUrl"
+                type="text"
+                placeholder="Enter book cover image URL"
+                value={newBook.imageUrl}
+                onChange={handleInputChange}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -208,13 +235,17 @@ function Booklist() {
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300"
+                disabled={isSubmitting}
+                className={`flex items-center ${
+                  isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                } text-white px-4 py-2 rounded-lg transition duration-300`}
               >
                 <Save className="mr-2" size={20} />
-                Save Book
+                {isSubmitting ? 'Saving...' : 'Save Book'}
               </button>
             </div>
           </form>
