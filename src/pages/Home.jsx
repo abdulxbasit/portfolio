@@ -35,7 +35,7 @@ function Home() {
   };
 
   const miniProjects = [
-    { name: 'Book Management App', path: '/books', icon: <Book /> },
+    { name: 'Book Readers Club', path: '/books', icon: <Book /> },
     { name: 'Todo App', path: '/todo', icon: <List /> },
     { name: 'Weather App', path: '/weather', icon: <Cloud /> },
     { name: 'Calculator App', path: '/calculator', icon: <Calculator /> },
