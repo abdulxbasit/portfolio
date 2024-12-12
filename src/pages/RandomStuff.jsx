@@ -1,57 +1,39 @@
 import { useState, useEffect } from 'react';
 import { 
-  Dog, 
   Cat, 
   Smile, 
   Wand2, 
   RefreshCw, 
-  Info, 
-  Code, 
-  Star, 
-  Film, 
-  Clock
+  Quote, 
+  Clock,
+  Globe
 } from 'lucide-react';
-
-// Anime tags array
-const animeTags = [
-  "cuddle", "hug", "pat", "smug", "bonk", 
-  "blush", "smile", "wave", "highfive", "nom", "bite", 
-  "happy", "wink", "poke", "dance", "cringe"
-];
 
 const RandomStuff = () => {
   // State for each component
-  const [dogImage, setDogImage] = useState("");
   const [catImage, setCatImage] = useState("");
-  const [animeImage, setAnimeImage] = useState("");
   const [emoji, setEmoji] = useState(null);
-  const [programmingJoke, setProgrammingJoke] = useState("");
-  const [randomFact, setRandomFact] = useState("");
-  const [randomGif, setRandomGif] = useState("");
-  const [currentAnimeTag, setCurrentAnimeTag] = useState("");
-  const [currentAnimeTagIndex, setCurrentAnimeTagIndex] = useState(0);
+  const [randomQuote, setRandomQuote] = useState(null);
+  const [planet, setPlanet] = useState(null);
 
   // Loading and error states
   const [loading, setLoading] = useState({
-    dog: true,
     cat: true,
-    anime: true,
     emoji: true,
-    joke: true,
-    fact: true,
-    gif: true,
+    quote: true,
+    planet: true,
   });
   const [error, setError] = useState({
-    dog: null,
     cat: null,
-    anime: null,
     emoji: null,
-    joke: null,
-    fact: null,
-    gif: null,
+    quote: null,
+    planet: null,
   });
 
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [currentPlanetIndex, setCurrentPlanetIndex] = useState(0);
+
+  const planets = ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'];
 
   useEffect(() => {
     // Initial fetch of all data
@@ -62,43 +44,17 @@ const RandomStuff = () => {
     if (autoRefresh) {
       const interval = setInterval(() => {
         fetchAllData();
-      }, 5000);
+      }, 6000);
       return () => clearInterval(interval);
     }
   }, [autoRefresh]);
   
   // Fetch all data at once
   const fetchAllData = () => {
-    fetchDogImage();
     fetchCatImage();
-    fetchAnimeImage();
     fetchRandomEmoji();
-    fetchProgrammingJoke();
-    fetchRandomFact();
-    fetchRandomGif();
-  };
-
-  const getNextAnimeTag = () => {
-    const nextIndex = (currentAnimeTagIndex + 1) % animeTags.length;
-    setCurrentAnimeTagIndex(nextIndex);
-    const nextTag = animeTags[nextIndex];
-    setCurrentAnimeTag(nextTag);
-    return nextTag;
-  };
-
-  // Fetch functions for each API
-  const fetchDogImage = async () => {
-    setLoading(prev => ({ ...prev, dog: true }));
-    try {
-      const response = await fetch("https://dog.ceo/api/breeds/image/random");
-      const data = await response.json();
-      setDogImage(data.message);
-      setError(prev => ({ ...prev, dog: null }));
-    } catch (err) {
-      setError(prev => ({ ...prev, dog: "Failed to load dog image" }));
-    } finally {
-      setLoading(prev => ({ ...prev, dog: false }));
-    }
+    fetchRandomQuote();
+    fetchRandomPlanet();
   };
 
   const fetchCatImage = async () => {
@@ -112,21 +68,6 @@ const RandomStuff = () => {
       setError(prev => ({ ...prev, cat: "Failed to load cat image" }));
     } finally {
       setLoading(prev => ({ ...prev, cat: false }));
-    }
-  };
-
-  const fetchAnimeImage = async () => {
-    const tag = getNextAnimeTag(); // Get and set next tag
-    setLoading(prev => ({ ...prev, anime: true }));
-    try {
-      const response = await fetch(`https://api.waifu.pics/sfw/${tag}`);
-      const data = await response.json();
-      setAnimeImage(data.url);
-      setError(prev => ({ ...prev, anime: null }));
-    } catch (err) {
-      setError(prev => ({ ...prev, anime: `Failed to load ${tag} anime image` }));
-    } finally {
-      setLoading(prev => ({ ...prev, anime: false }));
     }
   };
 
@@ -144,46 +85,49 @@ const RandomStuff = () => {
     }
   };
 
-  const fetchProgrammingJoke = async () => {
-    setLoading(prev => ({ ...prev, joke: true }));
+  const fetchRandomQuote = async () => {
+    setLoading(prev => ({ ...prev, quote: true }));
     try {
-      const response = await fetch("https://v2.jokeapi.dev/joke/Programming?type=single");
+      const response = await fetch("https://api.api-ninjas.com/v1/quotes", {
+        method: 'GET',
+        headers: { 
+          'X-Api-Key': 'dGnwz6JNEF9CAa/3yA960w==J2BKSFhi9w4sM58w',
+          'Content-Type': 'application/json'
+        }
+      });
       const data = await response.json();
-      setProgrammingJoke(data.joke);
-      setError(prev => ({ ...prev, joke: null }));
+      setRandomQuote(data[0]);
+      setError(prev => ({ ...prev, quote: null }));
     } catch (err) {
-      setError(prev => ({ ...prev, joke: "Failed to load programming joke" }));
+      setError(prev => ({ ...prev, quote: "Failed to load quote" }));
     } finally {
-      setLoading(prev => ({ ...prev, joke: false }));
+      setLoading(prev => ({ ...prev, quote: false }));
     }
   };
 
-  const fetchRandomFact = async () => {
-    setLoading(prev => ({ ...prev, fact: true }));
+  const fetchRandomPlanet = async () => {
+    setLoading(prev => ({ ...prev, planet: true }));
     try {
-      const response = await fetch("https://uselessfacts.jsph.pl/random.json?language=en");
-      const data = await response.json();
-      setRandomFact(data.text);
-      setError(prev => ({ ...prev, fact: null }));
-    } catch (err) {
-      setError(prev => ({ ...prev, fact: "Failed to load random fact" }));
-    } finally {
-      setLoading(prev => ({ ...prev, fact: false }));
-    }
-  };
+      // Use the current planet in the cycle
+      const currentPlanet = planets[currentPlanetIndex];
 
-  const fetchRandomGif = async () => {
-    setLoading(prev => ({ ...prev, gif: true }));
-    try {
-      // Note: Replace 'YOUR_API_KEY' with an actual Giphy API key
-      const response = await fetch("https://api.giphy.com/v1/gifs/random?api_key=X1pPqm7592bOemjON3RMHvvIoerWWOig");
+      const response = await fetch(`https://api.api-ninjas.com/v1/planets?name=${currentPlanet}`, {
+        method: 'GET',
+        headers: { 
+          'X-Api-Key': 'dGnwz6JNEF9CAa/3yA960w==J2BKSFhi9w4sM58w',
+          'Content-Type': 'application/json'
+        }
+      });
       const data = await response.json();
-      setRandomGif(data.data.images.original.url);
-      setError(prev => ({ ...prev, gif: null }));
+      setPlanet(data[0]);
+      setError(prev => ({ ...prev, planet: null }));
+
+      // Increment planet index, wrapping around to 0 if it reaches the end
+      setCurrentPlanetIndex((prevIndex) => (prevIndex + 1) % planets.length);
     } catch (err) {
-      setError(prev => ({ ...prev, gif: "Failed to load random gif" }));
+      setError(prev => ({ ...prev, planet: "Failed to load planet info" }));
     } finally {
-      setLoading(prev => ({ ...prev, gif: false }));
+      setLoading(prev => ({ ...prev, planet: false }));
     }
   };
 
@@ -205,6 +149,21 @@ const RandomStuff = () => {
       )}
     </div>
   );
+
+  // Planet emoji renderer
+  const renderPlanetEmoji = (planetName) => {
+    const planetEmojis = {
+      'Mercury': '🌑',
+      'Venus': '🌕',
+      'Earth': '🌍',
+      'Mars': '🔴',
+      'Jupiter': '🌎',
+      'Saturn': '🪐',
+      'Uranus': '🔵',
+      'Neptune': '💙'
+    };
+    return planetEmojis[planetName] || '🌠';
+  };
 
   return (
     <div className="container mx-auto p-6 bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
@@ -234,8 +193,6 @@ const RandomStuff = () => {
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-
         {/* Cat Image Section */}
         <div className="bg-white shadow-lg rounded-xl p-4">
           <h2 className="text-xl font-semibold mb-4 flex items-center">
@@ -248,21 +205,6 @@ const RandomStuff = () => {
             className="mt-4 w-full bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition disabled:opacity-50"
           >
             <RefreshCw className="inline-block mr-2" /> Fetch New Cat
-          </button>
-        </div>
-
-        {/* Anime Image Section */}
-        <div className="bg-white shadow-lg rounded-xl p-4">
-          <h2 className="text-xl font-semibold mb-4 flex items-center">
-            <Film className="mr-2 text-pink-600" /> Random Anime ({currentAnimeTag})
-          </h2>
-          {renderContent(animeImage, loading.anime, error.anime, true, `Random Anime (${currentAnimeTag})`)}
-          <button 
-            onClick={fetchAnimeImage}
-            disabled={loading.anime}
-            className="mt-4 w-full bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600 transition disabled:opacity-50"
-          >
-            <RefreshCw className="inline-block mr-2" /> Fetch New Anime
           </button>
         </div>
 
@@ -294,76 +236,75 @@ const RandomStuff = () => {
             <RefreshCw className="mr-2" /> Get New Emoji
           </button>
         </div>
-        {/* Dog Image Section */}
-        <div className="bg-white shadow-lg rounded-xl p-4">
-          <h2 className="text-xl font-semibold mb-4 flex items-center">
-            <Dog className="mr-2 text-blue-600" /> Random Dog
-          </h2>
-          {renderContent(dogImage, loading.dog, error.dog, true, "Random Dog")}
-          <button 
-            onClick={fetchDogImage}
-            disabled={loading.dog}
-            className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
-          >
-            <RefreshCw className="inline-block mr-2" /> Fetch New Dog
-          </button>
-        </div>
 
-        {/* Programming Joke Section */}
+        {/* Quote Section */}
         <div className="bg-white shadow-lg rounded-xl p-4">
           <h2 className="text-2xl font-semibold mb-4 flex items-center">
-            <Code className="mr-2 text-green-600" /> Programming Joke 💻🤣
+            <Quote className="mr-2 text-teal-600" /> Random Quote 💡📖
           </h2>
           <div className="text-lg">
-            {renderContent(
-              programmingJoke ? `🖥️ ${programmingJoke}` : "", 
-              loading.joke, 
-              error.joke
-            )}
+            {loading.quote ? (
+              <div className="animate-pulse text-gray-400">Loading...</div>
+            ) : error.quote ? (
+              <div className="text-red-500">{error.quote}</div>
+            ) : randomQuote ? (
+              <div className="text-center">
+                <p className="italic text-gray-700 mb-2">"{randomQuote.quote}"</p>
+                <p className="font-semibold text-gray-600">- {randomQuote.author}</p>
+              </div>
+            ) : null}
           </div>
           <button 
-            onClick={fetchProgrammingJoke}
-            disabled={loading.joke}
-            className="mt-4 w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition disabled:opacity-50"
-          >
-            <RefreshCw className="inline-block mr-2" /> New Joke 😂
-          </button>
-        </div>
-
-        {/* Random Fact Section */}
-        <div className="bg-white shadow-lg rounded-xl p-4">
-          <h2 className="text-2xl font-semibold mb-4 flex items-center">
-            <Info className="mr-2 text-teal-600" /> Random Fact 🤓🌟
-          </h2>
-          <div className="text-lg">
-            {renderContent(
-              randomFact ? `🧠 ${randomFact}` : "", 
-              loading.fact, 
-              error.fact
-            )}
-          </div>
-          <button 
-            onClick={fetchRandomFact}
-            disabled={loading.fact}
+            onClick={fetchRandomQuote}
+            disabled={loading.quote}
             className="mt-4 w-full bg-teal-500 text-white py-2 rounded-lg hover:bg-teal-600 transition disabled:opacity-50"
           >
-            <RefreshCw className="inline-block mr-2" /> New Fact 🔍
+            <RefreshCw className="inline-block mr-2" /> New Quote 🔍
           </button>
         </div>
 
-
-        {/* Random GIF Section */}
+        {/* Planet Section */}
         <div className="bg-white shadow-lg rounded-xl p-4">
-          <h2 className="text-xl font-semibold mb-4 flex items-center">
-            <Star className="mr-2 text-indigo-600" /> Random GIF
+          <h2 className="text-2xl font-semibold mb-4 flex items-center">
+            <Globe className="mr-2 text-indigo-600" /> Cosmic Planet 🌍🚀
           </h2>
-          {renderContent(randomGif, loading.gif, error.gif, true, "Random GIF")}
+          <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
+            {loading.planet ? (
+              <div className="animate-pulse text-gray-400">Loading...</div>
+            ) : error.planet ? (
+              <div className="text-red-500">{error.planet}</div>
+            ) : planet ? (
+              <div className="text-center p-4">
+                <p className="text-3xl mb-2">
+                  {renderPlanetEmoji(planet.name)} {planet.name}
+                </p>
+                <div className="text-gray-700 text-left space-y-2">
+                  <p>
+                    <strong>Mass:</strong> {(planet.mass).toFixed(5)} Jupiter masses 🌎
+                    <span className="text-xs block">
+                      ({(planet.mass * 1.898e27).toExponential(2)} kg)
+                    </span>
+                  </p>
+                  <p>
+                    <strong>Radius:</strong> {(planet.radius).toFixed(3)} Jupiter radii 🌐
+                    <span className="text-xs block">
+                      ({(planet.radius * 69911).toFixed(0)} km)
+                    </span>
+                  </p>
+                  <p><strong>Orbital Period:</strong> {planet.period} Earth days 🕰️</p>
+                  <p><strong>Semi-Major Axis:</strong> {planet.semi_major_axis} AU 📐</p>
+                  <p><strong>Surface Temperature:</strong> {planet.temperature} K 🌡️</p>
+                  <p><strong>Distance:</strong> {planet.distance_light_year.toFixed(6)} light-years 🌟</p>
+                </div>
+              </div>
+            ) : null}
+          </div>
           <button 
-            onClick={fetchRandomGif}
-            disabled={loading.gif}
+            onClick={fetchRandomPlanet}
+            disabled={loading.planet}
             className="mt-4 w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 transition disabled:opacity-50"
           >
-            <RefreshCw className="inline-block mr-2" /> Fetch New GIF
+            <RefreshCw className="inline-block mr-2" /> Next Planet 🌠
           </button>
         </div>
       </div>
