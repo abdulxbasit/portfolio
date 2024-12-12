@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../config/firebaseConfig';
-import { Book, List, Cloud, Calculator, Image, ShoppingCart, Music, Gamepad, Video, Code, Dices } from 'lucide-react';
+import { Book, List, Cloud, Calculator, Image, ShoppingCart, Music, Gamepad, Video, Code, Dices, Clock } from 'lucide-react';
 
 function Home() {
   const [user, setUser] = useState(null);
@@ -38,7 +38,7 @@ function Home() {
     { name: 'Book Readers Club', path: '/books', icon: <Book /> },
     { name: 'Todo App', path: '/todo', icon: <List /> },
     { name: 'Weather App', path: '/weather', icon: <Cloud /> },
-    { name: 'Calculator App', path: '/calculator', icon: <Calculator /> },
+    { name: 'Focus Timer & Leaderboard', path: '/focus-timer', icon: <Clock /> },
     { name: 'Image Gallery', path: '/image-gallery', icon: <Image /> },
     { name: 'E-Commerce App', path: '/ecommerce', icon: <ShoppingCart /> },
     { name: 'Random Stuff', path: '/random-stuff', icon: <Dices /> },

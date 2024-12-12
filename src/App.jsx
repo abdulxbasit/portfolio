@@ -9,7 +9,7 @@ import RandomStuff from './pages/RandomStuff';
 import WeatherInfo from './pages/WeatherInfo';
 import { auth } from './config/firebaseConfig'; // Ensure this is correct
 import { onAuthStateChanged } from 'firebase/auth';
-
+import FocusTimerAndLeaderboard from './pages/FocusTimerAndLeaderboard';
 function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -33,6 +33,7 @@ function App() {
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/random-stuff" element={<RandomStuff />} />
         <Route path="/weather" element={<WeatherInfo />} />
+        <Route path="/focus-timer" element={<FocusTimerAndLeaderboard />} />
         
         <Route
           path="*"
