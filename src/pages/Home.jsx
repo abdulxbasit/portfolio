@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../config/firebaseConfig';
-import { Book, List, Cloud, Calculator, Image, ShoppingCart, Music, Gamepad, Video, Code, Dices, Clock } from 'lucide-react';
+import { Book, List, Cloud, Clock, Image, ShoppingCart, Gamepad, Video, Code, Dices } from 'lucide-react';
 
 function Home() {
   const [user, setUser] = useState(null);
   const provider = new GoogleAuthProvider();
 
-  // Listen for authentication state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -16,7 +15,6 @@ function Home() {
     return () => unsubscribe();
   }, []);
 
-  // Handle login
   const handleLogin = async () => {
     try {
       await signInWithPopup(auth, provider);
@@ -25,7 +23,6 @@ function Home() {
     }
   };
 
-  // Handle logout
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -45,28 +42,27 @@ function Home() {
     { name: 'Game Hub', path: '/game-hub', icon: <Gamepad /> },
     { name: 'Video Streaming', path: '/video-streaming', icon: <Video /> },
     { name: 'Code Editor', path: '/code-editor', icon: <Code /> },
-    
   ];
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
         <h1 className="text-4xl font-bold">Welcome to My Mini Projects</h1>
-        <div>
+        <div className="flex flex-col items-center md:items-end space-y-4 md:space-y-0">
           {user ? (
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-col md:flex-row items-center space-x-0 md:space-x-4">
               <img
                 src={user.photoURL}
                 alt="User Avatar"
-                className="w-10 h-10 rounded-full"
+                className="w-10 h-10 rounded-full mb-2 md:mb-0"
               />
-              <div>
+              <div className="text-center md:text-left">
                 <p className="text-sm font-medium">{user.displayName}</p>
                 <p className="text-xs text-gray-400">{user.email}</p>
               </div>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg w-full md:w-auto"
               >
                 Sign Out
               </button>
@@ -74,7 +70,7 @@ function Home() {
           ) : (
             <button
               onClick={handleLogin}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg w-full md:w-auto"
             >
               Sign In with Google
             </button>
@@ -99,6 +95,5 @@ function Home() {
 }
 
 export default Home;
-
 
 

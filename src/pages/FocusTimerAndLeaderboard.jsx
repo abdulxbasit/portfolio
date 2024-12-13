@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   getDatabase,
   ref,
@@ -17,6 +17,7 @@ function FocusTimerAndLeaderboard() {
   const [leaderboard, setLeaderboard] = useState({ today: [], last7Days: [] });
   const [achievements, setAchievements] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [weeklyFocusData, setWeeklyFocusData] = useState([]);
 
   const user = auth.currentUser;
 
@@ -52,7 +53,7 @@ function FocusTimerAndLeaderboard() {
     }
   };
 
-  // Fetch leaderboard data from Firebase
+  // Fetch leaderboard data and weekly focus data from Firebase
   useEffect(() => {
     const db = getDatabase();
     const focusSessionsRef = ref(db, 'focus_sessions');
@@ -74,33 +75,42 @@ function FocusTimerAndLeaderboard() {
 
         const todayData = {};
         const last7DaysData = {};
+        const weeklyData = Array(7).fill(0);
 
         Object.keys(data).forEach((key) => {
           const session = data[key];
           const timestamp = session.createdAt;
 
-          if (timestamp && timestamp >= todayStart) {
-            if (!todayData[session.userId]) {
-              todayData[session.userId] = {
-                username: session.username,
-                totalFocusedTime: 0,
-                pomodoros: 0,
-              };
-            }
-            todayData[session.userId].totalFocusedTime += session.focusedTime;
-            todayData[session.userId].pomodoros += Math.floor(session.focusedTime / (25 * 60));
-          }
+          if (timestamp) {
+            const sessionDate = new Date(timestamp);
+            const dayIndex = (sessionDate.getDay() + 6) % 7; // Convert Sunday (0) to last index (6)
 
-          if (timestamp && timestamp >= last7DaysStart) {
-            if (!last7DaysData[session.userId]) {
-              last7DaysData[session.userId] = {
-                username: session.username,
-                totalFocusedTime: 0,
-                pomodoros: 0,
-              };
+            if (timestamp >= todayStart) {
+              if (!todayData[session.userId]) {
+                todayData[session.userId] = {
+                  username: session.username,
+                  totalFocusedTime: 0,
+                  pomodoros: 0,
+                };
+              }
+              todayData[session.userId].totalFocusedTime += session.focusedTime;
+              todayData[session.userId].pomodoros += Math.floor(session.focusedTime / (25 * 60));
             }
-            last7DaysData[session.userId].totalFocusedTime += session.focusedTime;
-            last7DaysData[session.userId].pomodoros += Math.floor(session.focusedTime / (25 * 60));
+
+            if (timestamp >= last7DaysStart) {
+              if (!last7DaysData[session.userId]) {
+                last7DaysData[session.userId] = {
+                  username: session.username,
+                  totalFocusedTime: 0,
+                  pomodoros: 0,
+                };
+              }
+              last7DaysData[session.userId].totalFocusedTime += session.focusedTime;
+              last7DaysData[session.userId].pomodoros += Math.floor(session.focusedTime / (25 * 60));
+
+              // Add focused time to the respective day
+              weeklyData[dayIndex] += session.focusedTime / 60; // Convert to minutes
+            }
           }
         });
 
@@ -114,6 +124,8 @@ function FocusTimerAndLeaderboard() {
           last7Days: sortLeaderboard(last7DaysData),
         });
 
+        setWeeklyFocusData(weeklyData);
+
         // Set achievements for the current user
         if (user) {
           const userTodayData = todayData[user.uid] || { totalFocusedTime: 0 };
@@ -122,12 +134,13 @@ function FocusTimerAndLeaderboard() {
           if (totalMinutes >= 100) unlockedAchievements.push('🎯 25 minutes');
           if (totalMinutes >= 200) unlockedAchievements.push('🔥 50 minutes');
           if (totalMinutes >= 300) unlockedAchievements.push('🏆 75 minutes');
-          if (totalMinutes >= 400) unlockedAchievements.push('🚀 100 minutes')
+          if (totalMinutes >= 400) unlockedAchievements.push('🚀 100 minutes');
           if (totalMinutes >= 500) unlockedAchievements.push('🌟 125 minutes');
           setAchievements(unlockedAchievements);
         }
       } else {
         setLeaderboard({ today: [], last7Days: [] });
+        setWeeklyFocusData(Array(7).fill(0));
       }
     });
   }, [user]);
@@ -158,22 +171,22 @@ function FocusTimerAndLeaderboard() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl grid grid-cols-3 gap-6">
+    <div className="container mx-auto p-6 max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Left Section */}
-      <div className="col-span-2">
+      <div className="md:col-span-2">
         <h1 className="text-4xl font-bold mb-6 flex items-center">
           🔔 Focus Timer & Leaderboard
         </h1>
 
         {/* User Greeting */}
         {user && (
-          <div className="flex items-center mb-8">
+          <div className="flex flex-col md:flex-row items-center mb-8">
             <img
               src={user.photoURL}
               alt="User Avatar"
-              className="w-16 h-16 rounded-full mr-4"
+              className="w-16 h-16 rounded-full mr-4 mb-4 md:mb-0"
             />
-            <div>
+            <div className="text-center md:text-left">
               <h2 className="text-xl font-semibold">
                 Welcome, {user.displayName || 'User'}!
               </h2>
@@ -193,112 +206,101 @@ function FocusTimerAndLeaderboard() {
               onClick={toggleTimer}
               className="bg-blue-600 text-white px-6 py-2 rounded-lg mr-2 shadow-md hover:bg-blue-500"
             >
-              {isActive ? 'Pause ⏸' : 'Start ▶'}
+                            {isActive ? 'Pause' : 'Start'}
             </button>
             <button
               onClick={handlePauseAndSave}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg mr-2 shadow-md hover:bg-green-500"
+              className="bg-green-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-green-500"
             >
-              Save & Reset ✅
-            </button>
-            <button
-              onClick={() => {
-                setTime(25 * 60);
-                setIsActive(false);
-              }}
-              className="bg-gray-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-gray-500"
-            >
-              Reset 🔁
+              Save & Reset
             </button>
           </div>
         </div>
+
         {/* Achievements Section */}
-        <h3 className="text-xl font-semibold mt-8">Achievements 🏅</h3>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {achievements.map((achievement, index) => (
-            <span
-              key={index}
-              className="px-4 py-2 bg-yellow-200 text-yellow-800 rounded-lg shadow"
-            >
-              {achievement}
-            </span>
-          ))}
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold mb-4">Achievements 🎉</h2>
+          <ul className="list-disc list-inside bg-gray-100 p-4 rounded-lg shadow-lg">
+            {achievements.length > 0 ? (
+              achievements.map((achievement, index) => (
+                <li key={index}>{achievement}</li>
+              ))
+            ) : (
+              <li>No achievements unlocked yet. Keep focusing!</li>
+            )}
+          </ul>
         </div>
       </div>
 
       {/* Right Section */}
-      <div className="col-span-1">
-        <h2 className="text-2xl font-semibold mb-4">Leaderboard 🏆</h2>
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr>
-              <th className="border-b py-2">Rank</th>
-              <th className="border-b py-2">Username</th>
-              <th className="border-b py-2">Focused Time</th>
-              <th className="border-b py-2">Pomodoros</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leaderboard.today.map((user, index) => (
-              <tr key={user.username}>
-                <td className="py-2">{getPositionEmoji(index + 1)}</td>
-                <td className="py-2">{user.username}</td>
-                <td className="py-2">{Math.floor(user.totalFocusedTime / 60)} mins</td>
-                <td className="py-2">{user.pomodoros}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="md:col-span-1">
+        <h2 className="text-2xl font-semibold mb-6">Leaderboard 🏆</h2>
 
-        <h3 className="text-xl font-semibold mt-6">Weekly Leaderboard 🗓️</h3>
-        <table className="w-full text-left border-collapse mt-2">
-          <thead>
-            <tr>
-              <th className="border-b py-2">Rank</th>
-              <th className="border-b py-2">Username</th>
-              <th className="border-b py-2">Focused Time</th>
-              <th className="border-b py-2">Pomodoros</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leaderboard.last7Days.map((user, index) => (
-              <tr key={user.username}>
-                <td className="py-2">{getPositionEmoji(index + 1)}</td>
-                <td className="py-2">{user.username}</td>
-                <td className="py-2">{Math.floor(user.totalFocusedTime / 60)} mins</td>
-                <td className="py-2">{user.pomodoros}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {/* Today Leaderboard */}
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold mb-4">Today</h3>
+          <ul className="list-none bg-gray-100 p-4 rounded-lg shadow-lg">
+            {leaderboard.today.length > 0 ? (
+              leaderboard.today.map((entry, index) => (
+                <li
+                  key={index}
+                  className="flex justify-between items-center py-2 border-b last:border-b-0"
+                >
+                  <span>
+                    {getPositionEmoji(index + 1)} {entry.username}
+                  </span>
+                  <span>{Math.floor(entry.totalFocusedTime / 60)} mins</span>
+                </li>
+              ))
+            ) : (
+              <li>No focus sessions recorded today.</li>
+            )}
+          </ul>
+        </div>
 
-        
+        {/* Last 7 Days Leaderboard */}
+        <div>
+          <h3 className="text-xl font-semibold mb-4">Last 7 Days</h3>
+          <ul className="list-none bg-gray-100 p-4 rounded-lg shadow-lg">
+            {leaderboard.last7Days.length > 0 ? (
+              leaderboard.last7Days.map((entry, index) => (
+                <li
+                  key={index}
+                  className="flex justify-between items-center py-2 border-b last:border-b-0"
+                >
+                  <span>
+                    {getPositionEmoji(index + 1)} {entry.username}
+                  </span>
+                  <span>{Math.floor(entry.totalFocusedTime / 60)} mins</span>
+                </li>
+              ))
+            ) : (
+              <li>No focus sessions recorded in the last 7 days.</li>
+            )}
+          </ul>
+        </div>
 
-        {/* Focus Chart */}
-        <h3 className="text-xl font-semibold mt-8">Focus Chart 📊</h3>
-        <div className="bg-gray-100 p-4 rounded-lg shadow-lg">
+        {/* Weekly Focus Data Chart */}
+        <div className="mt-8">
+          <h3 className="text-xl font-semibold mb-4">Weekly Progress</h3>
           <Bar
             data={{
-              labels: leaderboard.today.map((user, index) => `${getPositionEmoji(index + 1)} ${user.username}`),
+              labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
               datasets: [
                 {
-                  label: 'Focused Time (minutes)',
-                  data: leaderboard.today.map((user) => Math.floor(user.totalFocusedTime / 60)),
-                  backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                  borderColor: 'rgba(54, 162, 235, 1)',
+                  label: 'Focused Minutes',
+                  data: weeklyFocusData,
+                  backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                  borderColor: 'rgba(75, 192, 192, 1)',
                   borderWidth: 1,
                 },
               ],
             }}
             options={{
-              responsive: true,
-              maintainAspectRatio: false,
+              maintainAspectRatio: true,
               scales: {
                 y: {
                   beginAtZero: true,
-                  ticks: {
-                    stepSize: 50,
-                  },
                 },
               },
             }}
@@ -311,4 +313,4 @@ function FocusTimerAndLeaderboard() {
 
 export default FocusTimerAndLeaderboard;
 
-            
+
