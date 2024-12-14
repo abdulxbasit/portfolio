@@ -53,11 +53,12 @@ function FocusTimerAndLeaderboard() {
     }
   };
 
+
   // Fetch leaderboard data and weekly focus data from Firebase
   useEffect(() => {
     const db = getDatabase();
     const focusSessionsRef = ref(db, 'focus_sessions');
-
+  
     onValue(focusSessionsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -72,19 +73,20 @@ function FocusTimerAndLeaderboard() {
           now.getMonth(),
           now.getDate() - 6
         ).getTime();
-
+  
         const todayData = {};
         const last7DaysData = {};
-        const weeklyData = Array(7).fill(0);
-
+        const weeklyData = Array(7).fill(0); // Weekly data for the logged-in user
+  
         Object.keys(data).forEach((key) => {
           const session = data[key];
           const timestamp = session.createdAt;
-
+  
           if (timestamp) {
             const sessionDate = new Date(timestamp);
             const dayIndex = (sessionDate.getDay() + 6) % 7; // Convert Sunday (0) to last index (6)
-
+  
+            // Process leaderboard data for all users
             if (timestamp >= todayStart) {
               if (!todayData[session.userId]) {
                 todayData[session.userId] = {
@@ -94,9 +96,11 @@ function FocusTimerAndLeaderboard() {
                 };
               }
               todayData[session.userId].totalFocusedTime += session.focusedTime;
-              todayData[session.userId].pomodoros += Math.floor(session.focusedTime / (25 * 60));
+              todayData[session.userId].pomodoros += Math.floor(
+                session.focusedTime / (25 * 60)
+              );
             }
-
+  
             if (timestamp >= last7DaysStart) {
               if (!last7DaysData[session.userId]) {
                 last7DaysData[session.userId] = {
@@ -106,36 +110,42 @@ function FocusTimerAndLeaderboard() {
                 };
               }
               last7DaysData[session.userId].totalFocusedTime += session.focusedTime;
-              last7DaysData[session.userId].pomodoros += Math.floor(session.focusedTime / (25 * 60));
-
-              // Add focused time to the respective day
-              weeklyData[dayIndex] += session.focusedTime / 60; // Convert to minutes
+              last7DaysData[session.userId].pomodoros += Math.floor(
+                session.focusedTime / (25 * 60)
+              );
+  
+              // Add focused time to the respective day for the logged-in user
+              if (user && session.userId === user.uid) {
+                weeklyData[dayIndex] += session.focusedTime / 60; // Convert to minutes
+              }
             }
           }
         });
-
+  
         const sortLeaderboard = (data) =>
           Object.values(data).sort(
             (a, b) => b.totalFocusedTime - a.totalFocusedTime
           );
-
+  
+        // Update leaderboard for all users
         setLeaderboard({
           today: sortLeaderboard(todayData),
           last7Days: sortLeaderboard(last7DaysData),
         });
-
+  
+        // Update weekly progress for the logged-in user
         setWeeklyFocusData(weeklyData);
-
-        // Set achievements for the current user
+  
+        // Update achievements for the current user
         if (user) {
           const userTodayData = todayData[user.uid] || { totalFocusedTime: 0 };
           const totalMinutes = Math.floor(userTodayData.totalFocusedTime / 60);
           const unlockedAchievements = [];
-          if (totalMinutes >= 100) unlockedAchievements.push('🎯 25 minutes');
-          if (totalMinutes >= 200) unlockedAchievements.push('🔥 50 minutes');
-          if (totalMinutes >= 300) unlockedAchievements.push('🏆 75 minutes');
-          if (totalMinutes >= 400) unlockedAchievements.push('🚀 100 minutes');
-          if (totalMinutes >= 500) unlockedAchievements.push('🌟 125 minutes');
+          if (totalMinutes >= 25) unlockedAchievements.push('🎯 25 minutes');
+          if (totalMinutes >= 50) unlockedAchievements.push('🔥 50 minutes');
+          if (totalMinutes >= 75) unlockedAchievements.push('🏆 75 minutes');
+          if (totalMinutes >= 100) unlockedAchievements.push('🚀 100 minutes');
+          if (totalMinutes >= 125) unlockedAchievements.push('🌟 125 minutes');
           setAchievements(unlockedAchievements);
         }
       } else {
@@ -144,6 +154,8 @@ function FocusTimerAndLeaderboard() {
       }
     });
   }, [user]);
+  
+
 
   // Timer effect (counts down when active)
   useEffect(() => {
