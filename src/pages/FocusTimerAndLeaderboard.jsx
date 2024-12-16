@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect,useRef } from "react";
 import {
   getDatabase,
   ref,
@@ -11,6 +11,7 @@ import { auth } from "../config/firebaseConfig";
 import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
 import Lottie from "lottie-react";
+import Spline from '@splinetool/react-spline';
 import startOfJourneyAnimation from "../assets/animations/StartoftheJourney.json";
 import toTheMoon from "../assets/animations/tothemoon.json";
 import babyAstro from "../assets/animations/babyastro.json";
@@ -42,8 +43,23 @@ function FocusTimerAndLeaderboard() {
     }
     setIsFullscreen(!isFullscreen);
   };
-  
+  const splineRef = useRef();
 
+  // Function to handle mouse hover and interactions
+  const handleMouseMove = (event) => {
+    // Get mouse position relative to the window
+    const mouseX = event.clientX / window.innerWidth;
+    const mouseY = event.clientY / window.innerHeight;
+
+    if (splineRef.current) {
+      // Normalize mouse position and move scene objects accordingly
+      // Adjust values depending on how you'd like the scene to move
+      splineRef.current.emitEvent("mouseMove", "Rocket", {
+        x: mouseX * 2 - 1, // Normalize to range [-1, 1]
+        y: mouseY * 2 - 1, // Normalize to range [-1, 1]
+      });
+    }
+  };
 
   const user = auth.currentUser;
 
@@ -56,7 +72,7 @@ function FocusTimerAndLeaderboard() {
   };
   // Start or pause the timer
   const toggleTimer = () => setIsActive(!isActive);
-  
+
   // Save focus session data to Firebase
   const saveFocusSession = async (elapsedTime) => {
     if (!user) {
@@ -238,55 +254,67 @@ function FocusTimerAndLeaderboard() {
   };
 
   return isFullscreen ? (
-    <div className="flex items-center justify-center min-h-screen bg-black text-white">
-      <div>
-        <h2 className="text-3xl font-semibold mb-4">Focus Timer ⏱</h2>
-        <div className="text-9xl font-bold">{`${Math.floor(time / 60)}:${String(time % 60).padStart(2, "0")}`}</div>
-        <button
-          onClick={toggleFullscreen}
-          className="bg-purple-600 text-white px-6 py-2 mt-4 rounded-lg shadow-md hover:bg-purple-500"
-        >
-          Exit Fullscreen
-        </button>
+    <div className="relative flex items-center justify-center min-h-screen text-white"onMouseMove={handleMouseMove}>
+    {/* Background Spline Scene */}
+    <Spline
+      scene="https://prod.spline.design/WO0cWnoVlX6eodGI/scene.splinecode"
+      className="absolute top-0 left-0 w-full h-full"
+      style={{ zIndex: -1 }}
+    />
+
+    {/* Timer Content */}
+    <div className="relative z-10">
+      <h2 className="text-3xl font-semibold mb-4">Focus Timer ⏱</h2>
+      <div className="text-9xl font-bold">
+        {`${Math.floor(time / 60)}:${String(time % 60).padStart(2, "0")}`}
       </div>
+      <button
+        onClick={toggleFullscreen}
+        className="bg-purple-600 text-white px-6 py-2 mt-4 rounded-lg shadow-md hover:bg-purple-500"
+      >
+        Exit Fullscreen
+      </button>
     </div>
+  </div>
   ) : (
     <div className="container mx-auto p-6 max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Left Section */}
-        <div className="md:col-span-2">
-          <div className="flex flex-col md:flex-row items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold flex items-center">
-          🔔 Focus Timer & Leaderboard
-            </h1>
+      <div className="md:col-span-2">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold flex items-center">
+            🔔 Focus Timer & Leaderboard
+          </h1>
 
-            {/* User Greeting */}
-            {user && (
-          <div className="flex items-center">
-            <img
-              src={user.photoURL}
-              alt="User Avatar"
-              className="w-16 h-16 rounded-full mr-4"
-            />
-            <div className="text-center md:text-left">
-              <h2 className="text-xl font-semibold">
-            Welcome, {user.displayName || "User"}!
-              </h2>
-              <p className="text-gray-600">Time to focus and be productive!</p>
+          {/* User Greeting */}
+          {user && (
+            <div className="flex items-center">
+              <img
+                src={user.photoURL}
+                alt="User Avatar"
+                className="w-16 h-16 rounded-full mr-4"
+              />
+              <div className="text-center md:text-left">
+                <h2 className="text-xl font-semibold">
+                  Welcome, {user.displayName || "User"}!
+                </h2>
+                <p className="text-gray-600">
+                  Time to focus and be productive!
+                </p>
+              </div>
             </div>
-          </div>
-            )}
-          </div>
+          )}
+        </div>
 
-          {/* Timer Section */}
+        {/* Timer Section */}
         <div className="mb-8 text-center">
           <h2 className="text-2xl font-semibold mb-4">Focus Timer ⏱</h2>
           <div className="text-7xl font-bold mb-4 bg-gray-100 p-4 rounded-lg shadow-lg">
             {`${Math.floor(time / 60)}:${String(time % 60).padStart(2, "0")}`}
           </div>
-          <div>
+          <div className="flex flex-wrap justify-center gap-2">
             <button
               onClick={toggleTimer}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg mr-2 shadow-md hover:bg-blue-500"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-500"
             >
               {isActive ? "Pause" : "Start"}
             </button>
@@ -298,88 +326,92 @@ function FocusTimerAndLeaderboard() {
             </button>
             <button
               onClick={resetTimer}
-              className="bg-gray-500 text-white px-6 py-2 ml-2 rounded-lg shadow-md hover:bg-gray-600"
+              className="bg-gray-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-gray-600"
             >
               Reset
             </button>
             <button
-  onClick={toggleFullscreen}
-  className="bg-purple-600 text-white px-6 py-2 ml-2 rounded-lg shadow-md hover:bg-purple-500"
->
-  {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-</button>
-
+              onClick={toggleFullscreen}
+              className="bg-purple-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-purple-500"
+            >
+              {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+            </button>
           </div>
         </div>
 
         {/* Streak and Pomodoros Section */}
-          <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">🔥Current Streak </h2>
-              <div className="bg-gray-100 p-4 rounded-lg shadow-lg text-center">
-                <Lottie
-                  animationData={coldfire}
-                  loop={true}
-                  autoplay={true}
-                  style={{ width: 200, height: 100, margin: "0 auto" }}
-                />
-                <span className="text-2xl font-bold">{streak} Days</span>
-              </div>
-            </div>
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">🍅 Pomodoros Completed </h2>
-              <div className="bg-gray-100 p-4 rounded-lg shadow-lg text-center">
-                <Lottie
-                  animationData={timer}
-                  loop={true}
-                  autoplay={true}
-                  style={{ width: 200, height: 100, margin: "0 auto" }}
-                />
-                <span className="text-2xl font-bold">{pomodorosCompleted}</span>
-              </div>
+        <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold mb-4">🔥Current Streak </h2>
+            <div className="bg-gray-100 p-4 rounded-lg shadow-lg text-center">
+              <Lottie
+                animationData={coldfire}
+                loop={true}
+                autoplay={true}
+                style={{ width: 200, height: 100, margin: "0 auto" }}
+              />
+              <span className="text-2xl font-bold">{streak} Days</span>
             </div>
           </div>
+          <div>
+            <h2 className="text-2xl font-semibold mb-4">
+              🍅 Pomodoros Completed{" "}
+            </h2>
+            <div className="bg-gray-100 p-4 rounded-lg shadow-lg text-center">
+              <Lottie
+                animationData={timer}
+                loop={true}
+                autoplay={true}
+                style={{ width: 200, height: 100, margin: "0 auto" }}
+              />
+              <span className="text-2xl font-bold">{pomodorosCompleted}</span>
+            </div>
+          </div>
+        </div>
 
-          {/* Achievements Section */}
-          <div className="mb-8">
+        {/* Achievements Section */}
+        <div className="mb-8">
           {/* <h2 className="text-2xl font-semibold mb-4">Achievements 🎉</h2> */}
           <div className=" p-4">
             {achievements.length > 0 ? (
-              
               <div></div>
-            ): <div className="flex items-center space-x-4">
-            <Lottie
-              animationData={startOfJourneyAnimation}
-              loop={true}
-              autoplay={true}
-              style={{ width: 100, height: 100 }}
-            />
-            <span>No achievements unlocked yet. Keep focusing!</span>
-          </div>}
+            ) : (
+              <div className="flex items-center space-x-4">
+                <Lottie
+                  animationData={startOfJourneyAnimation}
+                  loop={true}
+                  autoplay={true}
+                  style={{ width: 100, height: 100 }}
+                />
+                <span>No achievements unlocked yet. Keep focusing!</span>
+              </div>
+            )}
           </div>
         </div>
         {/* Progress Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Achievements 🚀</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {Object.keys(achievementAnimations).map((achievement, index) => (
-              <div
-                key={index}
-                className={`bg-gray-100 p-4 rounded-lg shadow-lg text-center ${
-                  achievements.includes(achievement) ? "border-4 border-green-500" : ""
-                }`}
-              >
-                <Lottie
-                  animationData={achievementAnimations[achievement]}
-                  loop={true}
-                  autoplay={true}
-                  style={{ width: 120, height: 120, margin: "0 auto" }}
-                />
-                <span className="block mt-4">{achievement}</span>
-              </div>
-            ))}
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4">Achievements 🚀</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {Object.keys(achievementAnimations).map((achievement, index) => (
+                <div
+            key={index}
+            className={`bg-gray-100 p-4 rounded-lg shadow-lg text-center ${
+              achievements.includes(achievement)
+                ? "border-4 border-green-500"
+                : "opacity-50"
+            }`}
+                >
+            <Lottie
+              animationData={achievementAnimations[achievement]}
+              loop={true}
+              autoplay={true}
+              style={{ width: 120, height: 120, margin: "0 auto" }}
+            />
+            <span className="block mt-4">{achievement}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
               </div>
 
               {/* Right Section */}
@@ -455,48 +487,50 @@ function FocusTimerAndLeaderboard() {
             }}
           />
         </div>
-        
+
         <div className="mt-8">
-  <h3 className="text-xl font-semibold mb-4">Space Medals 🚀</h3>
-  <ul className="list-none bg-gradient-to-r from-indigo-900 to-black text-white p-4 rounded-lg shadow-lg">
-    {[
-      { name: "Asteroid 🪨", threshold: 200 },
-      { name: "Comet ☄️", threshold: 300 },
-      { name: "Moon 🌙", threshold: 500 },
-      { name: "Galaxy 🌌", threshold: 800 },
-    ].map((medal, index) => {
-      const totalMinutes = Math.round(weeklyFocusData.reduce((a, b) => a + b, 0));
-      const progress = Math.min((totalMinutes / medal.threshold) * 100, 100);
-      return (
-        <li key={index} className="mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <span>{medal.name}</span>
-            <span>{progress.toFixed(0)}%</span>
-          </div>
-          <div className="w-full bg-gray-600 rounded-full h-4">
-            <div
-              style={{
-                width: `${progress}%`,
-                backgroundImage: "linear-gradient(to right, #6a0dad, #8a2be2)",
-              }}
-              className="h-4 rounded-full shadow-md"
-            ></div>
-          </div>
-          <p className="text-sm text-gray-300 mt-2">
-            {totalMinutes} / {medal.threshold} minutes
-          </p>
-        </li>
-      );
-    })}
-  </ul>
-</div>
-
-
-        
+          <h3 className="text-xl font-semibold mb-4">Space Medals 🚀</h3>
+          <ul className="list-none bg-gradient-to-r from-indigo-900 to-black text-white p-4 rounded-lg shadow-lg">
+            {[
+              { name: "Asteroid 🪨", threshold: 200 },
+              { name: "Comet ☄️", threshold: 300 },
+              { name: "Moon 🌙", threshold: 500 },
+              { name: "Galaxy 🌌", threshold: 800 },
+            ].map((medal, index) => {
+              const totalMinutes = Math.round(
+                weeklyFocusData.reduce((a, b) => a + b, 0)
+              );
+              const progress = Math.min(
+                (totalMinutes / medal.threshold) * 100,
+                100
+              );
+              return (
+                <li key={index} className="mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span>{medal.name}</span>
+                    <span>{progress.toFixed(0)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-600 rounded-full h-4">
+                    <div
+                      style={{
+                        width: `${progress}%`,
+                        backgroundImage:
+                          "linear-gradient(to right, #6a0dad, #8a2be2)",
+                      }}
+                      className="h-4 rounded-full shadow-md"
+                    ></div>
+                  </div>
+                  <p className="text-sm text-gray-300 mt-2">
+                    {totalMinutes} / {medal.threshold} minutes
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
     </div>
-  
-);
+  );
 }
 
 export default FocusTimerAndLeaderboard;

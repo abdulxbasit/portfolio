@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@splinetool/react-spline": "^4.0.0",
+    "@splinetool/runtime": "^1.9.48",
     "firebase": "^11.0.2",
     "lottie-react": "^2.4.0",
     "lucide-react": "^0.468.0",
