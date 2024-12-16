@@ -17,6 +17,8 @@ import babyAstro from "../assets/animations/babyastro.json";
 import rocket from "../assets/animations/rocket.json";
 import lostinspace from "../assets/animations/lostinspace.json";
 import focuserror from "../assets/animations/404.json";
+import coldfire from "../assets/animations/coldfire.json";
+import timer from "../assets/animations/timer.json";
 function FocusTimerAndLeaderboard() {
   const [time, setTime] = useState(25 * 60); // Default to 25 minutes
   const [isActive, setIsActive] = useState(false);
@@ -26,6 +28,22 @@ function FocusTimerAndLeaderboard() {
   const [weeklyFocusData, setWeeklyFocusData] = useState([]);
   const [streak, setStreak] = useState(0);
   const [pomodorosCompleted, setPomodorosCompleted] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Failed to enter fullscreen mode: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen().catch((err) => {
+        console.error(`Failed to exit fullscreen mode: ${err.message}`);
+      });
+    }
+    setIsFullscreen(!isFullscreen);
+  };
+  
+
 
   const user = auth.currentUser;
 
@@ -219,7 +237,20 @@ function FocusTimerAndLeaderboard() {
     return emojis[position - 1] || position;
   };
 
-  return (
+  return isFullscreen ? (
+    <div className="flex items-center justify-center min-h-screen bg-black text-white">
+      <div>
+        <h2 className="text-3xl font-semibold mb-4">Focus Timer ⏱</h2>
+        <div className="text-9xl font-bold">{`${Math.floor(time / 60)}:${String(time % 60).padStart(2, "0")}`}</div>
+        <button
+          onClick={toggleFullscreen}
+          className="bg-purple-600 text-white px-6 py-2 mt-4 rounded-lg shadow-md hover:bg-purple-500"
+        >
+          Exit Fullscreen
+        </button>
+      </div>
+    </div>
+  ) : (
     <div className="container mx-auto p-6 max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Left Section */}
         <div className="md:col-span-2">
@@ -271,6 +302,13 @@ function FocusTimerAndLeaderboard() {
             >
               Reset
             </button>
+            <button
+  onClick={toggleFullscreen}
+  className="bg-purple-600 text-white px-6 py-2 ml-2 rounded-lg shadow-md hover:bg-purple-500"
+>
+  {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+</button>
+
           </div>
         </div>
 
@@ -279,12 +317,24 @@ function FocusTimerAndLeaderboard() {
             <div>
               <h2 className="text-2xl font-semibold mb-4">🔥Current Streak </h2>
               <div className="bg-gray-100 p-4 rounded-lg shadow-lg text-center">
+                <Lottie
+                  animationData={coldfire}
+                  loop={true}
+                  autoplay={true}
+                  style={{ width: 200, height: 100, margin: "0 auto" }}
+                />
                 <span className="text-2xl font-bold">{streak} Days</span>
               </div>
             </div>
             <div>
               <h2 className="text-2xl font-semibold mb-4">🍅 Pomodoros Completed </h2>
               <div className="bg-gray-100 p-4 rounded-lg shadow-lg text-center">
+                <Lottie
+                  animationData={timer}
+                  loop={true}
+                  autoplay={true}
+                  style={{ width: 200, height: 100, margin: "0 auto" }}
+                />
                 <span className="text-2xl font-bold">{pomodorosCompleted}</span>
               </div>
             </div>
@@ -310,7 +360,7 @@ function FocusTimerAndLeaderboard() {
         </div>
         {/* Progress Section */}
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Progress 🚀</h2>
+          <h2 className="text-2xl font-semibold mb-4">Achievements 🚀</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {Object.keys(achievementAnimations).map((achievement, index) => (
               <div
@@ -405,6 +455,43 @@ function FocusTimerAndLeaderboard() {
             }}
           />
         </div>
+        
+        <div className="mt-8">
+  <h3 className="text-xl font-semibold mb-4">Space Medals 🚀</h3>
+  <ul className="list-none bg-gradient-to-r from-indigo-900 to-black text-white p-4 rounded-lg shadow-lg">
+    {[
+      { name: "Asteroid 🪨", threshold: 200 },
+      { name: "Comet ☄️", threshold: 300 },
+      { name: "Moon 🌙", threshold: 500 },
+      { name: "Galaxy 🌌", threshold: 800 },
+    ].map((medal, index) => {
+      const totalMinutes = Math.round(weeklyFocusData.reduce((a, b) => a + b, 0));
+      const progress = Math.min((totalMinutes / medal.threshold) * 100, 100);
+      return (
+        <li key={index} className="mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <span>{medal.name}</span>
+            <span>{progress.toFixed(0)}%</span>
+          </div>
+          <div className="w-full bg-gray-600 rounded-full h-4">
+            <div
+              style={{
+                width: `${progress}%`,
+                backgroundImage: "linear-gradient(to right, #6a0dad, #8a2be2)",
+              }}
+              className="h-4 rounded-full shadow-md"
+            ></div>
+          </div>
+          <p className="text-sm text-gray-300 mt-2">
+            {totalMinutes} / {medal.threshold} minutes
+          </p>
+        </li>
+      );
+    })}
+  </ul>
+</div>
+
+
         
       </div>
     </div>
