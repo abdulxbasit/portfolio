@@ -52,7 +52,8 @@ function FocusTimerAndLeaderboard() {
     const hashCode = userId.split('').reduce((acc, char) => 
       ((acc << 5) - acc) + char.charCodeAt(0), 0);
     const index = Math.abs(hashCode) % SPACE_NAMES.length;
-    return SPACE_NAMES[index];
+    const randomNumber = Math.floor(Math.random() * 90) + 10; // Generate a random two-digit number
+    return `${SPACE_NAMES[index]}#${randomNumber}`;
   };
 
   const toggleFullscreen = () => {
