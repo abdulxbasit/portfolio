@@ -268,7 +268,7 @@ const RandomStuff = () => {
           <h2 className="text-2xl font-semibold mb-4 flex items-center">
             <Globe className="mr-2 text-indigo-600" /> Cosmic Planet 🌍🚀
           </h2>
-          <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
+          <div className=" rounded-lg h-64 flex items-center justify-center">
             {loading.planet ? (
               <div className="animate-pulse text-gray-400">Loading...</div>
             ) : error.planet ? (

@@ -31,20 +31,20 @@ function FocusTimerAndLeaderboard() {
   const [pomodorosCompleted, setPomodorosCompleted] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const SPACE_NAMES = [
-    "Astroweaver",
-    "QuantumQuester", 
-    "Cosmoweaver", 
+    "Astroweaver🧑‍🚀",
+    "QuantumQuester🪐", 
+    "Cosmoweaver🌌", 
     "Starweaver👨‍🚀", 
-    "AstroArchitect", 
-    "LunarLoom", 
-    "GalaxyGlider", 
-    "CosmicCrafter", 
-    "OrbitOblivion", 
-    "AstroZen", 
+    "AstroArchitect🚀", 
+    "LunarLoom🌙", 
+    "GalaxyGlider🌠", 
+    "CosmicCrafter✨", 
+    "OrbitOblivion🛰️", 
+    "AstroZen🧘‍♂️", 
     "Luminara👩‍🚀", 
-    "StellarSeeker", 
-    "GalaxyGuardian", 
-    "NovaSeeker"
+    "StellarSeeker🔭", 
+    "GalaxyGuardian🛡️", 
+    "NovaSeeker🌟"
   ];
   const getSpaceName = (userId) => {
     // Use a simple hash to map userID to a consistent space name
@@ -253,10 +253,12 @@ function FocusTimerAndLeaderboard() {
   useEffect(() => {
     let timer;
     if (isActive && time > 0) {
-      timer = setInterval(() => setTime((prev) => prev - 1), 1000);
+      timer = setInterval(() => setTime((prev) => prev - 1), 100);
     } else if (time === 0) {
+      // Automatically save the focus session and reset
+      saveFocusSession(25 * 60); 
+      setTime(25 * 60); // Reset timer to 25 minutes
       setIsActive(false);
-      saveFocusSession(25 * 60); // Save the session when the timer ends
     }
     return () => clearInterval(timer);
   }, [isActive, time]);
