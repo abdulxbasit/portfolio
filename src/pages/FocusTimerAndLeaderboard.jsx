@@ -30,6 +30,30 @@ function FocusTimerAndLeaderboard() {
   const [streak, setStreak] = useState(0);
   const [pomodorosCompleted, setPomodorosCompleted] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const SPACE_NAMES = [
+    "Astroweaver",
+    "QuantumQuester", 
+    "Cosmoweaver", 
+    "Starweaver👨‍🚀", 
+    "AstroArchitect", 
+    "LunarLoom", 
+    "GalaxyGlider", 
+    "CosmicCrafter", 
+    "OrbitOblivion", 
+    "AstroZen", 
+    "Luminara👩‍🚀", 
+    "StellarSeeker", 
+    "GalaxyGuardian", 
+    "NovaSeeker"
+  ];
+  const getSpaceName = (userId) => {
+    // Use a simple hash to map userID to a consistent space name
+    if (!userId) return "Anonymous";
+    const hashCode = userId.split('').reduce((acc, char) => 
+      ((acc << 5) - acc) + char.charCodeAt(0), 0);
+    const index = Math.abs(hashCode) % SPACE_NAMES.length;
+    return SPACE_NAMES[index];
+  };
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -137,12 +161,14 @@ function FocusTimerAndLeaderboard() {
           if (timestamp) {
             const sessionDate = new Date(timestamp);
             const dayIndex = (sessionDate.getDay() + 6) % 7; // Convert Sunday (0) to last index (6)
+            // Use space name instead of username
+            const spaceName = getSpaceName(session.userId);
 
             // Process leaderboard data for all users
             if (timestamp >= todayStart) {
               if (!todayData[session.userId]) {
                 todayData[session.userId] = {
-                  username: session.username,
+                  username: spaceName,
                   totalFocusedTime: 0,
                   pomodoros: 0,
                 };
@@ -156,7 +182,7 @@ function FocusTimerAndLeaderboard() {
             if (timestamp >= last7DaysStart) {
               if (!last7DaysData[session.userId]) {
                 last7DaysData[session.userId] = {
-                  username: session.username,
+                  username: spaceName,
                   totalFocusedTime: 0,
                   pomodoros: 0,
                 };
@@ -300,6 +326,7 @@ function FocusTimerAndLeaderboard() {
                 <p className="text-gray-600">
                   Time to focus and be productive!
                 </p>
+
               </div>
             </div>
           )}
@@ -417,10 +444,13 @@ function FocusTimerAndLeaderboard() {
               {/* Right Section */}
       <div className="md:col-span-1">
         <h2 className="text-2xl font-semibold mb-6">Leaderboard 🏆</h2>
-
+        
         {/* Today Leaderboard */}
         <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-4">Today</h3>
+          <h3 className="text-xl font-semibold mb-3">Today</h3>
+          <p className="text-gray-600 mb-3">
+                  You are known as {getSpaceName(user.uid)} in space🌌.
+                </p>
           <ul className="list-none bg-gray-100 p-4 rounded-lg shadow-lg">
             {leaderboard.today.length > 0 ? (
               leaderboard.today.map((entry, index) => (
