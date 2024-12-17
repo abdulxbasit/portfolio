@@ -44,7 +44,7 @@ function FocusTimerAndLeaderboard() {
     "Luminara👩‍🚀", 
     "StellarSeeker🔭", 
     "GalaxyGuardian🛡️", 
-    "NovaSeeker🌟"
+    "NovaSeeker🌟",
   ];
   const getSpaceName = (userId) => {
     // Use a simple hash to map userID to a consistent space name
@@ -253,7 +253,7 @@ function FocusTimerAndLeaderboard() {
   useEffect(() => {
     let timer;
     if (isActive && time > 0) {
-      timer = setInterval(() => setTime((prev) => prev - 1), 100);
+      timer = setInterval(() => setTime((prev) => prev - 1), 1000);
     } else if (time === 0) {
       // Automatically save the focus session and reset
       saveFocusSession(25 * 60); 
@@ -450,9 +450,15 @@ function FocusTimerAndLeaderboard() {
         {/* Today Leaderboard */}
         <div className="mb-8">
           <h3 className="text-xl font-semibold mb-3">Today</h3>
-          <p className="text-gray-600 mb-3">
-                  You are known as {getSpaceName(user.uid)} in space🌌.
-                </p>
+          {user && user.uid ? (
+  <p className="text-gray-600 mb-3">
+    You are known as {getSpaceName(user.uid)} in space🌌.
+  </p>
+) : (
+  <p className="text-gray-600 mb-3">
+    You are not logged in to a space yet. 🌌
+  </p>
+)}
           <ul className="list-none bg-gray-100 p-4 rounded-lg shadow-lg">
             {leaderboard.today.length > 0 ? (
               leaderboard.today.map((entry, index) => (
