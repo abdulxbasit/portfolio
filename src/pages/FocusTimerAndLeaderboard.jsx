@@ -266,7 +266,7 @@ function FocusTimerAndLeaderboard() {
   };
 
   return isFullscreen ? (
-    <div className="relative flex items-center justify-center min-h-screen text-white">
+    <div className="relative flex justify-center min-h-screen text-white bg-[#EEEEEF]">
       <Lottie
         animationData={spacebg}
         loop={true}
@@ -274,8 +274,8 @@ function FocusTimerAndLeaderboard() {
         className="absolute inset-x-0 top-0 object-cover z-0"
       />
       {/* Timer Content */}
-      <div className="relative z-10">
-        <h2 className="text-3xl font-semibold mb-4">Focus Timer ⏱</h2>
+      <div className="relative z-10 mt-20">
+        <h2 className="text-3xl font-semibold mb-4 md">Focus Timer ⏱</h2>
         <div className="text-9xl font-bold">
           {`${Math.floor(time / 60)}:${String(time % 60).padStart(2, "0")}`}
         </div>

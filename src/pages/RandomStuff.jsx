@@ -6,7 +6,7 @@ import {
   RefreshCw, 
   Quote, 
   Clock,
-  Globe
+  Film,
 } from 'lucide-react';
 
 const RandomStuff = () => {
@@ -14,7 +14,9 @@ const RandomStuff = () => {
   const [catImage, setCatImage] = useState("");
   const [emoji, setEmoji] = useState(null);
   const [randomQuote, setRandomQuote] = useState(null);
-  const [planet, setPlanet] = useState(null);
+  const [currentAnimeTag, setCurrentAnimeTag] = useState("");
+  const [animeImage, setAnimeImage] = useState("");
+  const [currentAnimeTagIndex, setCurrentAnimeTagIndex] = useState(0);
 
   // Loading and error states
   const [loading, setLoading] = useState({
@@ -22,18 +24,30 @@ const RandomStuff = () => {
     emoji: true,
     quote: true,
     planet: true,
+    anime: true,
   });
   const [error, setError] = useState({
     cat: null,
     emoji: null,
     quote: null,
     planet: null,
+    anime: null,
   });
 
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [currentPlanetIndex, setCurrentPlanetIndex] = useState(0);
-
-  const planets = ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'];
+  const getNextAnimeTag = () => {
+    const nextIndex = (currentAnimeTagIndex + 1) % animeTags.length;
+    setCurrentAnimeTagIndex(nextIndex);
+    const nextTag = animeTags[nextIndex];
+    setCurrentAnimeTag(nextTag);
+    return nextTag;
+  };
+  const animeTags = [
+    "smug", "bonk", 
+    "blush", "smile", "wave", "highfive", "nom", "bite", 
+    "happy", "wink", "poke", "dance", "cringe"
+  ];
 
   useEffect(() => {
     // Initial fetch of all data
@@ -55,6 +69,7 @@ const RandomStuff = () => {
     fetchRandomEmoji();
     fetchRandomQuote();
     fetchRandomPlanet();
+    fetchAnimeImage();
   };
 
   const fetchCatImage = async () => {
@@ -68,6 +83,20 @@ const RandomStuff = () => {
       setError(prev => ({ ...prev, cat: "Failed to load cat image" }));
     } finally {
       setLoading(prev => ({ ...prev, cat: false }));
+    }
+  };
+  const fetchAnimeImage = async () => {
+    const tag = getNextAnimeTag(); // Get and set next tag
+    setLoading(prev => ({ ...prev, anime: true }));
+    try {
+      const response = await fetch(`https://api.waifu.pics/sfw/${tag}`);
+      const data = await response.json();
+      setAnimeImage(data.url);
+      setError(prev => ({ ...prev, anime: null }));
+    } catch (err) {
+      setError(prev => ({ ...prev, anime: `Failed to load ${tag} anime image` }));
+    } finally {
+      setLoading(prev => ({ ...prev, anime: false }));
     }
   };
 
@@ -150,20 +179,7 @@ const RandomStuff = () => {
     </div>
   );
 
-  // Planet emoji renderer
-  const renderPlanetEmoji = (planetName) => {
-    const planetEmojis = {
-      'Mercury': '🌑',
-      'Venus': '🌕',
-      'Earth': '🌍',
-      'Mars': '🔴',
-      'Jupiter': '🌎',
-      'Saturn': '🪐',
-      'Uranus': '🔵',
-      'Neptune': '💙'
-    };
-    return planetEmojis[planetName] || '🌠';
-  };
+  
 
   return (
     <div className="container mx-auto p-6 bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
@@ -262,51 +278,21 @@ const RandomStuff = () => {
             <RefreshCw className="inline-block mr-2" /> New Quote 🔍
           </button>
         </div>
-
-        {/* Planet Section */}
+        {/* Anime Image Section */}
         <div className="bg-white shadow-lg rounded-xl p-4">
-          <h2 className="text-2xl font-semibold mb-4 flex items-center">
-            <Globe className="mr-2 text-indigo-600" /> Cosmic Planet 🌍🚀
+          <h2 className="text-xl font-semibold mb-4 flex items-center">
+            <Film className="mr-2 text-pink-600" /> Random Anime ({currentAnimeTag})
           </h2>
-          <div className=" rounded-lg h-64 flex items-center justify-center">
-            {loading.planet ? (
-              <div className="animate-pulse text-gray-400">Loading...</div>
-            ) : error.planet ? (
-              <div className="text-red-500">{error.planet}</div>
-            ) : planet ? (
-              <div className="text-center p-4">
-                <p className="text-3xl mb-2">
-                  {renderPlanetEmoji(planet.name)} {planet.name}
-                </p>
-                <div className="text-gray-700 text-left space-y-2">
-                  <p>
-                    <strong>Mass:</strong> {(planet.mass).toFixed(5)} Jupiter masses 🌎
-                    <span className="text-xs block">
-                      ({(planet.mass * 1.898e27).toExponential(2)} kg)
-                    </span>
-                  </p>
-                  <p>
-                    <strong>Radius:</strong> {(planet.radius).toFixed(3)} Jupiter radii 🌐
-                    <span className="text-xs block">
-                      ({(planet.radius * 69911).toFixed(0)} km)
-                    </span>
-                  </p>
-                  <p><strong>Orbital Period:</strong> {planet.period} Earth days 🕰️</p>
-                  <p><strong>Semi-Major Axis:</strong> {planet.semi_major_axis} AU 📐</p>
-                  <p><strong>Surface Temperature:</strong> {planet.temperature} K 🌡️</p>
-                  <p><strong>Distance:</strong> {planet.distance_light_year.toFixed(6)} light-years 🌟</p>
-                </div>
-              </div>
-            ) : null}
-          </div>
+          {renderContent(animeImage, loading.anime, error.anime, true, `Random Anime (${currentAnimeTag})`)}
           <button 
-            onClick={fetchRandomPlanet}
-            disabled={loading.planet}
-            className="mt-4 w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 transition disabled:opacity-50"
+            onClick={fetchAnimeImage}
+            disabled={loading.anime}
+            className="mt-4 w-full bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600 transition disabled:opacity-50"
           >
-            <RefreshCw className="inline-block mr-2" /> Next Planet 🌠
+            <RefreshCw className="inline-block mr-2" /> Fetch New Anime
           </button>
         </div>
+        
       </div>
     </div>
   );
