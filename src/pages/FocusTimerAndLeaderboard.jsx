@@ -11,7 +11,6 @@ import { auth } from "../config/firebaseConfig";
 import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
 import Lottie from "lottie-react";
-import Spline from '@splinetool/react-spline';
 import startOfJourneyAnimation from "../assets/animations/StartoftheJourney.json";
 import toTheMoon from "../assets/animations/tothemoon.json";
 import babyAstro from "../assets/animations/babyastro.json";
@@ -20,6 +19,7 @@ import lostinspace from "../assets/animations/lostinspace.json";
 import focuserror from "../assets/animations/404.json";
 import coldfire from "../assets/animations/coldfire.json";
 import timer from "../assets/animations/timer.json";
+import spacebg from "../assets/animations/spacebg.json";
 function FocusTimerAndLeaderboard() {
   const [time, setTime] = useState(25 * 60); // Default to 25 minutes
   const [isActive, setIsActive] = useState(false);
@@ -67,23 +67,7 @@ function FocusTimerAndLeaderboard() {
     }
     setIsFullscreen(!isFullscreen);
   };
-  const splineRef = useRef();
-
-  // Function to handle mouse hover and interactions
-  const handleMouseMove = (event) => {
-    // Get mouse position relative to the window
-    const mouseX = event.clientX / window.innerWidth;
-    const mouseY = event.clientY / window.innerHeight;
-
-    if (splineRef.current) {
-      // Normalize mouse position and move scene objects accordingly
-      // Adjust values depending on how you'd like the scene to move
-      splineRef.current.emitEvent("mouseMove", "Rocket", {
-        x: mouseX * 2 - 1, // Normalize to range [-1, 1]
-        y: mouseY * 2 - 1, // Normalize to range [-1, 1]
-      });
-    }
-  };
+  
 
   const user = auth.currentUser;
 
@@ -282,28 +266,27 @@ function FocusTimerAndLeaderboard() {
   };
 
   return isFullscreen ? (
-    <div className="relative flex items-center justify-center min-h-screen text-white"onMouseMove={handleMouseMove}>
-    {/* Background Spline Scene */}
-    <Spline
-      scene="https://prod.spline.design/WO0cWnoVlX6eodGI/scene.splinecode"
-      className="absolute top-0 left-0 w-full h-full"
-      style={{ zIndex: -1 }}
-    />
-
-    {/* Timer Content */}
-    <div className="relative z-10">
-      <h2 className="text-3xl font-semibold mb-4">Focus Timer ⏱</h2>
-      <div className="text-9xl font-bold">
-        {`${Math.floor(time / 60)}:${String(time % 60).padStart(2, "0")}`}
+    <div className="relative flex items-center justify-center min-h-screen text-white">
+      <Lottie
+        animationData={spacebg}
+        loop={true}
+        autoplay={true}
+        className="absolute inset-x-0 top-0 object-cover z-0"
+      />
+      {/* Timer Content */}
+      <div className="relative z-10">
+        <h2 className="text-3xl font-semibold mb-4">Focus Timer ⏱</h2>
+        <div className="text-9xl font-bold">
+          {`${Math.floor(time / 60)}:${String(time % 60).padStart(2, "0")}`}
+        </div>
+        <button
+          onClick={toggleFullscreen}
+          className="bg-purple-600 text-white px-6 py-2 mt-4 rounded-lg shadow-md hover:bg-purple-500"
+        >
+          Exit Fullscreen
+        </button>
       </div>
-      <button
-        onClick={toggleFullscreen}
-        className="bg-purple-600 text-white px-6 py-2 mt-4 rounded-lg shadow-md hover:bg-purple-500"
-      >
-        Exit Fullscreen
-      </button>
     </div>
-  </div>
   ) : (
     <div className="container mx-auto p-6 max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Left Section */}
